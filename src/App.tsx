@@ -39,7 +39,12 @@ const MyTextField: React.FC<FieldAttributes<{}>> = ({
   const [field, meta] = useField<{}>(props);
   const errorText = meta.error && meta.touched ? meta.error : "";
   return (
-    <TextField placeholder={placeholder} {...field} helperText={errorText} />
+    <TextField
+      placeholder={placeholder}
+      {...field}
+      helperText={errorText}
+      error={!!errorText}
+    />
   );
 };
 
@@ -54,6 +59,13 @@ const App: React.FC = () => {
           cookies: [],
           yogurt: "",
         }}
+        validate={(values) => {
+          const errors: Record<string, string> = {};
+          if (values.firstName.includes("bob")) {
+            errors.firstName = "no bob";
+          }
+          return errors;
+        }}
         onSubmit={(data, { setSubmitting, resetForm }) => {
           resetForm();
           setSubmitting(true);
@@ -61,7 +73,14 @@ const App: React.FC = () => {
           console.log(data);
         }}
       >
-        {({ values, isSubmitting, handleChange, handleBlur, handleSubmit }) => (
+        {({
+          values,
+          errors,
+          isSubmitting,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+        }) => (
           <Form>
             {/* <form onSubmit={handleSubmit}> */}
             <MyTextField
@@ -128,6 +147,7 @@ const App: React.FC = () => {
               </Button>
             </div>
             <pre>{JSON.stringify(values, null, 2)}</pre>
+            <pre>{JSON.stringify(errors, null, 2)}</pre>
             {/* </form> */}
           </Form>
         )}
