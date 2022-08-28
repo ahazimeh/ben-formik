@@ -2,11 +2,14 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  MenuItem,
   Radio,
+  Select,
   TextField,
 } from "@material-ui/core";
 import {
   Field,
+  FieldArray,
   FieldAttributes,
   FieldHookConfig,
   Form,
@@ -14,6 +17,7 @@ import {
   useField,
 } from "formik";
 import React from "react";
+import * as yup from "yup";
 
 type MyRadioProps = {
   label: string;
@@ -48,6 +52,15 @@ const MyTextField: React.FC<FieldAttributes<{}>> = ({
   );
 };
 
+const validationSchema = yup.object({
+  firstName: yup.string().required().max(10),
+  pets: yup.array().of(
+    yup.object({
+      name: yup.string().required(),
+    })
+  ),
+});
+
 const App: React.FC = () => {
   return (
     <div>
@@ -58,14 +71,16 @@ const App: React.FC = () => {
           isTall: false,
           cookies: [],
           yogurt: "",
+          pets: [{ type: "cat", name: "jarvis", id: "" + Math.random() }],
         }}
-        validate={(values) => {
-          const errors: Record<string, string> = {};
-          if (values.firstName.includes("bob")) {
-            errors.firstName = "no bob";
-          }
-          return errors;
-        }}
+        validationSchema={validationSchema}
+        // validate={(values) => {
+        //   const errors: Record<string, string> = {};
+        //   if (values.firstName.includes("bob")) {
+        //     errors.firstName = "no bob";
+        //   }
+        //   return errors;
+        // }}
         onSubmit={(data, { setSubmitting, resetForm }) => {
           resetForm();
           setSubmitting(true);
@@ -141,6 +156,45 @@ const App: React.FC = () => {
               onChange={handleChange}
               onBlur={handleBlur}
             /> */}
+            <FieldArray name="pets">
+              {(arrayHelper) => (
+                <div>
+                  <Button
+                    onClick={() =>
+                      arrayHelper.push({
+                        type: "frog",
+                        name: "",
+                        id: "" + Math.random(),
+                      })
+                    }
+                  >
+                    add pet
+                  </Button>
+                  {values.pets.map((pet, index) => {
+                    return (
+                      <div key={pet.id}>
+                        <MyTextField
+                          placeholder="name"
+                          name={`pets.${index}.name`}
+                        />
+                        <Field
+                          name={`pets.${index}.type`}
+                          type="select"
+                          as={Select}
+                        >
+                          <MenuItem value="cat">cat</MenuItem>
+                          <MenuItem value="dog">dog</MenuItem>
+                          <MenuItem value="frog">frog</MenuItem>
+                        </Field>
+                        <Button onClick={() => arrayHelper.remove(index)}>
+                          x
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </FieldArray>
             <div>
               <Button disabled={isSubmitting} type="submit">
                 submit
